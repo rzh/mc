@@ -89,7 +89,8 @@ func (r *TheRun) reportResults(run_id int, log_file string, run_dir string) {
 		Type: rr.Type, Run: run}
 
 	if len(report_url) == 0 {
-		report_url = append(report_url, "http://54.68.84.192:8080/api/v1/results")
+		return // will not report if report_url is empty
+		// report_url = append(report_url, "http://54.68.84.192:8080/api/v1/results")
 		// report_url = append(report_url, "http://dyno.mongodb.parts/api/v1/results")
 	}
 	var err error
