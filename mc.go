@@ -30,7 +30,7 @@ import (
 
 	"github.com/ActiveState/tail"
 	"github.com/kr/pretty"
-	"github.com/rzh/utils/go/mc/parser"
+	"github.com/rzh/mc/parser"
 )
 
 var (

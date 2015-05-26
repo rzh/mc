@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/rzh/utils/go/mc/parser"
+	"github.com/rzh/mc/parser"
 )
 
 /*
