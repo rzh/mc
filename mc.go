@@ -798,7 +798,7 @@ func summarizeFolder(folder string) {
 func init() {
 	var report_url_argv string
 	flag.StringVar(&run, "run", "", "ID for the run")
-	flag.BoolVar(&submitDyno, "submit", true, "Submit results to Dyna, defauilt to true")
+	flag.BoolVar(&submitDyno, "submit", true, "Submit results to Dyno, default to true")
 	flag.StringVar(&config, "config", "", "Config JSON for the run")
 	flag.StringVar(&test, "test", "", "Suffix for the report folder")
 	flag.StringVar(&report_url_argv, "report", "", "URL to report test results")
