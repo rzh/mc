@@ -45,6 +45,7 @@ var (
 	config     string
 	test       string
 	report_url []string
+	reportJSON string
 )
 
 const report_folder string = "reports"
@@ -798,10 +799,11 @@ func summarizeFolder(folder string) {
 func init() {
 	var report_url_argv string
 	flag.StringVar(&run, "run", "", "ID for the run")
-	flag.BoolVar(&submitDyno, "submit", true, "Submit results to Dyno, default to true")
+	flag.BoolVar(&submitDyno, "submit", false, "Submit results to Dyno, default to false")
 	flag.StringVar(&config, "config", "", "Config JSON for the run")
 	flag.StringVar(&test, "test", "", "Suffix for the report folder")
 	flag.StringVar(&report_url_argv, "report", "", "URL to report test results")
+	flag.StringVar(&reportJSON, "o", "", "JSON file for test results")
 
 	if report_url_argv != "" {
 		report_url = str.Split(report_url_argv, ",")
