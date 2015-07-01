@@ -88,11 +88,6 @@ func (r *TheRun) reportResults(run_id int, log_file string, run_dir string) {
 		Client_logs: rr.Client_logs, Server_logs: rr.Server_logs,
 		Type: rr.Type, Run: run}
 
-	if len(report_url) == 0 {
-		return // will not report if report_url is empty
-		// report_url = append(report_url, "http://54.68.84.192:8080/api/v1/results")
-		// report_url = append(report_url, "http://dyno.mongodb.parts/api/v1/results")
-	}
 	var err error
 	switch t {
 	case "hammer":
@@ -110,10 +105,10 @@ func (r *TheRun) reportResults(run_id int, log_file string, run_dir string) {
 
 	case "ycsb":
 		// YCSB
-		log.Println("Processing YCSB results")
-		throught, _ := parser.ProcessYCSBResult(log_file)
+		throughput, _ := parser.ProcessYCSBResult(log_file)
 
-		r.Runs[run_id].Stats.Summary.AllNodes.Op_throughput = throught
+		r.Runs[run_id].Stats.Summary.AllNodes.Op_throughput = throughput
+		log.Println("\n>>>>>>>>>>>>\n|    processing results for test <" + r.Runs[run_id].Run_id + ">\n|        throughput : " + fmt.Sprint(throughput) + "\n<<<<<<<<<<<<\n")
 
 	case "sysbench":
 		log.Println("Process sysbench results")
@@ -240,7 +235,7 @@ func (r *TheRun) reportResults(run_id int, log_file string, run_dir string) {
 		// r.Runs[run_id].Stats.Server_Stats[r.Runs[run_id].Servers[k]][kk] = make([]parser.DataPoint, len(vv))
 		// log.Println("++++> ", copy(r.Runs[run_id].Stats.Server_Stats[r.Runs[run_id].Servers[k]][kk], vv))
 		//append(r.Runs[run_id].Stats.Server_Stats[r.Runs[run_id].Servers[k]][kk], vv)
-		log.Println("\n\n++++++++-----+++++++++\n\n")
+		// log.Println("\n\n++++++++-----+++++++++\n\n")
 		//r.Runs[run_id].Stats.Server_Stats[replaceDot(r.Runs[run_id].Servers[k])].Cpu = make([]parser.DataPoint, len(stats["cpu"]), len(stats["cpu"]))
 		// copy(r.Runs[run_id].Stats.Server_Stats[replaceDot(r.Runs[run_id].Servers[k])].Cpu, stats["cpu"])
 		r.Runs[run_id].Stats.Server_Stats[replaceDot(r.Runs[run_id].Servers[k])] = stats
@@ -263,8 +258,30 @@ func (r *TheRun) reportResults(run_id int, log_file string, run_dir string) {
 		}
 	}
 
+	// report to temp server
+	type Result struct {
+		Setup      string  `json:"setup" binding:"required"`
+		Workload   string  `json:"workload" binding:"required"`
+		Test       string  `json:"test" binding:"required"`
+		Throughput float64 `json:"throughput" binding:"required"`
+	}
+
+	var _result Result = Result{
+		Setup:      setup,
+		Workload:   strings.ToLower(r.Runs[run_id].Type),
+		Test:       r.Runs[run_id].Run_id,
+		Throughput: r.Runs[run_id].Stats.Throughput,
+	}
+
+	rs, _ := json.MarshalIndent(_result, "  ", "    ")
+	_, err = http.Post("http://52.1.238.147:9999/", "application/json", bytes.NewBuffer(rs))
+
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Failed to post result to server")
+	}
+
 	// print
-	os.Stdout.Write(s)
-	fmt.Println("\n********")
+	// os.Stdout.Write(s)
+	// fmt.Println("\n********")
 	//fmt.Printf("%# v", pretty.Formatter(r.Runs[run_id].Stats))
 }

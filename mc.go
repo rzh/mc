@@ -43,6 +43,7 @@ var (
 	autorun    bool
 	submitDyno bool
 	config     string
+	setup      string
 	test       string
 	report_url []string
 	reportJSON string
@@ -78,12 +79,14 @@ func (p *Task) Run() {
 	if p.Pem_file != "" {
 		p.Cmd_exec = exec.Command(
 			"/usr/bin/ssh",
+			"-o", "StrictHostKeyChecking=no",
 			"-i", p.Pem_file,
 			p.Ssh_url,
 			p.Cmd)
 	} else {
 		p.Cmd_exec = exec.Command(
 			"/usr/bin/ssh",
+			"-o", "StrictHostKeyChecking=no",
 			p.Ssh_url,
 			p.Cmd)
 	}
@@ -152,12 +155,14 @@ func (r *TheRun) runServerCmd(server string, cmd string) ([]byte, error) {
 	if r.PemFile != "" {
 		return exec.Command(
 			"/usr/bin/ssh",
+			"-o", "StrictHostKeyChecking=no",
 			"-i", r.PemFile,
 			server,
 			cmd).Output()
 	} else {
 		return exec.Command(
 			"/usr/bin/ssh",
+			"-o", "StrictHostKeyChecking=no",
 			server,
 			cmd).Output()
 	}
@@ -381,12 +386,14 @@ func (r *TheRun) RunClientTasks(i int, run_dir string) {
 		if r.PemFile != "" {
 			cmd = exec.Command(
 				"/usr/bin/ssh",
+				"-o", "StrictHostKeyChecking=no",
 				"-i", r.PemFile,
 				r.Runs[i].Clients[0],
 				r.Runs[i].Cmd)
 		} else {
 			cmd = exec.Command(
 				"/usr/bin/ssh",
+				"-o", "StrictHostKeyChecking=no",
 				r.Runs[i].Clients[0],
 				r.Runs[i].Cmd)
 		}
@@ -801,6 +808,7 @@ func init() {
 	flag.StringVar(&run, "run", "", "ID for the run")
 	flag.BoolVar(&submitDyno, "submit", false, "Submit results to Dyno, default to false")
 	flag.StringVar(&config, "config", "", "Config JSON for the run")
+	flag.StringVar(&setup, "setup", "n/a", "Setup for the test run")
 	flag.StringVar(&test, "test", "", "Suffix for the report folder")
 	flag.StringVar(&report_url_argv, "report", "", "URL to report test results")
 	flag.StringVar(&reportJSON, "o", "", "JSON file for test results")
