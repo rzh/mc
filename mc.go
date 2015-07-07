@@ -844,4 +844,12 @@ func main() {
 	fmt.Printf("%+v", r)
 
 	r.Run(run_dir)
+
+	// generate reportJSON if specifiled
+
+	if reportJSON != "" {
+		rs, _ := json.MarshalIndent(_results, "  ", "    ")
+		fmt.Println(string(rs))
+		ioutil.WriteFile(reportJSON, rs, 777)
+	}
 }

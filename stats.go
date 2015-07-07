@@ -51,6 +51,22 @@ type Stats struct {
 }
 */
 
+type TestResult struct {
+	Throughput float64 `json:"ops_per_sec" binding:"required"`
+}
+
+type Result struct {
+	Workload string                `json:"workload" binding:"required"`
+	TestId   string                `json:"name" binding:"requred"`
+	Results  map[string]TestResult `json:"results" binding:"required"`
+}
+
+type Results struct {
+	Results []Result `json:"results"`
+}
+
+var _results Results
+
 func replaceDot(s string) string {
 	return strings.Replace(s, ".", "_", -1)
 }
@@ -89,6 +105,8 @@ func (r *TheRun) reportResults(run_id int, log_file string, run_dir string) {
 		Type: rr.Type, Run: run}
 
 	var err error
+	var threads string
+	threads = "not_specified" // default value for other non supported workload
 	switch t {
 	case "hammer":
 		log.Println("Process hammer results")
@@ -105,9 +123,10 @@ func (r *TheRun) reportResults(run_id int, log_file string, run_dir string) {
 
 	case "ycsb":
 		// YCSB
-		throughput, _ := parser.ProcessYCSBResult(log_file)
+		throughput, _, th := parser.ProcessYCSBResult(log_file)
 
 		r.Runs[run_id].Stats.Summary.AllNodes.Op_throughput = throughput
+		threads = th
 		log.Println("\n>>>>>>>>>>>>\n|    processing results for test <" + r.Runs[run_id].Run_id + ">\n|        throughput : " + fmt.Sprint(throughput) + "\n<<<<<<<<<<<<\n")
 
 	case "sysbench":
@@ -259,19 +278,13 @@ func (r *TheRun) reportResults(run_id int, log_file string, run_dir string) {
 	}
 
 	// report to temp server
-	type Result struct {
-		Setup      string  `json:"setup" binding:"required"`
-		Workload   string  `json:"workload" binding:"required"`
-		Test       string  `json:"test" binding:"required"`
-		Throughput float64 `json:"throughput" binding:"required"`
+	var _result Result = Result{
+		Workload: strings.ToLower(r.Runs[run_id].Type),
+		TestId:   r.Runs[run_id].Run_id,
 	}
 
-	var _result Result = Result{
-		Setup:      setup,
-		Workload:   strings.ToLower(r.Runs[run_id].Type),
-		Test:       r.Runs[run_id].Run_id,
-		Throughput: r.Runs[run_id].Stats.Throughput,
-	}
+	_result.Results = make(map[string]TestResult)
+	_result.Results[threads] = TestResult{Throughput: r.Runs[run_id].Stats.Throughput}
 
 	rs, _ := json.MarshalIndent(_result, "  ", "    ")
 	_, err = http.Post("http://52.1.238.147:9999/", "application/json", bytes.NewBuffer(rs))
@@ -279,9 +292,12 @@ func (r *TheRun) reportResults(run_id int, log_file string, run_dir string) {
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Failed to post result to server")
 	}
+	fmt.Println(string(rs))
 
-	// print
-	// os.Stdout.Write(s)
-	// fmt.Println("\n********")
-	//fmt.Printf("%# v", pretty.Formatter(r.Runs[run_id].Stats))
+	// append to results
+	_results.Results = append(_results.Results, _result)
+}
+
+func init() {
+	_results = Results{}
 }

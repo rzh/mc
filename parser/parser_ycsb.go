@@ -3,12 +3,14 @@ package parser
 import (
 	"io/ioutil"
 	"log"
+	"regexp"
 	"strconv"
 	"strings"
 )
 
 type YCSBResult struct {
 	CmdLine    string
+	Threads    string
 	Throughput float64
 }
 
@@ -17,7 +19,7 @@ type YCSBResult struct {
 // ...
 // [OVERALL], Throughput(ops/sec), 58782.55451347149
 
-func ProcessYCSBResult(file string) (throughput float64, cmdline string) {
+func ProcessYCSBResult(file string) (throughput float64, cmdline string, threads string) {
 	f, err := ioutil.ReadFile(file)
 
 	if err != nil {
@@ -29,6 +31,15 @@ func ProcessYCSBResult(file string) (throughput float64, cmdline string) {
 	for i := 0; i < len(lines); i++ {
 		if strings.Index(lines[i], "Command line:") >= 0 {
 			cmdline = lines[i]
+
+			re := regexp.MustCompile("-threads ([1-9][0-9]*)")
+			matches := re.FindStringSubmatch(cmdline)
+
+			if len(matches) == 0 {
+				log.Fatal("Cannot part YCSB command line: " + cmdline)
+			}
+
+			threads = matches[1]
 
 		} else if strings.Index(lines[i], "[OVERALL], Throughput(ops/sec)") >= 0 {
 			s := strings.Split(lines[i], ",")
