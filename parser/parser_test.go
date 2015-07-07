@@ -225,13 +225,17 @@ func TestProcessHammerResult(t *testing.T) {
 }
 
 func TestProcessYCSBResult(t *testing.T) {
-	throughput, cmdline := ProcessYCSBResult("ycsb_run.txt")
+	throughput, cmdline, threads := ProcessYCSBResult("ycsb_run.txt")
 
 	if (throughput - 58782.554513) > 0.00001 {
 		t.Errorf("Wrong YCSB throughput, expecting 58782.554513, got %f", throughput)
 	}
 
 	if cmdline != "Command line: -db com.yahoo.ycsb.db.MongoDbClient -s -P workloads/workloadShardDirect -p mongodb.url=10.2.1.99:27017 -threads 64 -t" {
-		t.Errorf("Wrong YCSB throughput, expecting:\n  Command line: -db com.yahoo.ycsb.db.MongoDbClient -s -P workloads/workloadShardDirect -p mongodb.url=10.2.1.99:27017 -threads 64 -t\ngot:\n  %s", cmdline)
+		t.Errorf("Wrong YCSB cmdLine, expecting:\n  Command line: -db com.yahoo.ycsb.db.MongoDbClient -s -P workloads/workloadShardDirect -p mongodb.url=10.2.1.99:27017 -threads 64 -t\ngot:\n  %s", cmdline)
+	}
+
+	if threads != "64" {
+		t.Errorf("Wrong YCSB thread count, expecting 64 got:  %s", threads)
 	}
 }
