@@ -600,17 +600,40 @@ func (r *TheRun) RunClientTasks(i int, run_dir string) {
 func (r *TheRun) monitorServer(server string, run_dir string) {
 	pid := r.findMongoD_PID(server)
 
+	// monitor interval, default to 2
+	s := os.Getenv("MC_MONITOR_INTERVAL")
+	if s == "" {
+		s = "2"
+	}
+
+	i, err := strconv.ParseInt(s, 10, 64)
+	if err != nil {
+		log.Fatal("Please specify integer for MC_MONITOR_INTERVAL, failed to read " + s)
+	}
+
+	interval_ms := strconv.Itoa(int(i) * 1000)
+
+	// whether to check per thread stats
+	perThreadStats := strings.ToLower(os.Getenv("MC_PER_THREAD_STATS"))
+	var pidsArgs string
+
+	if perThreadStats == "yes" || perThreadStats == "" {
+		pidsArgs = " -Ihtruwd -p "
+	} else {
+		pidsArgs = " -Ihruwd -p "
+	}
+
 	r.tasks = append(r.tasks, Task{
 		Ssh_url:  server,
 		Pem_file: r.PemFile,
 		Logfile:  joinstr(run_dir, "/pidstat.log--"+server, ""),
-		Cmd:      joinstr("pidstat 2 -Ihtruwd -p", pid, " ")})
+		Cmd:      joinstr("pidstat "+s+pidsArgs, pid, " ")})
 
 	r.tasks = append(r.tasks, Task{
 		Ssh_url:  server,
 		Pem_file: r.PemFile,
 		Logfile:  joinstr(run_dir, "/iostat.log--"+server, ""),
-		Cmd:      "iostat -x 2"})
+		Cmd:      "iostat -x " + s})
 
 	// heap monitor
 	/*
@@ -626,7 +649,7 @@ func (r *TheRun) monitorServer(server string, run_dir string) {
 		Ssh_url:  server,
 		Pem_file: r.PemFile,
 		Logfile:  joinstr(run_dir, "/mongod-ss.log--"+server, ""),
-		Cmd:      "~/bin/mongo --eval \"while(true) {print(JSON.stringify(db.serverStatus())); sleep(1000)}\""})
+		Cmd:      "~/bin/mongo --eval \"while(true) {print(JSON.stringify(db.serverStatus())); sleep(" + interval_ms + ")}\""})
 
 	// r.tasks = append(r.tasks, Task{
 	// 	Ssh_url:  ssh_server,
