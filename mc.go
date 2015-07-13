@@ -25,7 +25,7 @@ import (
 	"os/exec"
 	"regexp"
 	"strconv"
-	str "strings"
+	"strings"
 	"time"
 
 	"github.com/ActiveState/tail"
@@ -197,9 +197,9 @@ func cleanup(lines []string) []string {
 			lines = append(lines[:i], lines[i+1:]...)
 			i = i - 1
 		} else if reNum.MatchString(lines[i]) {
-			ss := str.Replace(lines[i], "NumberLong", "", -1)
-			ss = str.Replace(ss, "(", "", -1)
-			ss = str.Replace(ss, ")", "", -1)
+			ss := strings.Replace(lines[i], "NumberLong", "", -1)
+			ss = strings.Replace(ss, "(", "", -1)
+			ss = strings.Replace(ss, ")", "", -1)
 			lines[i] = ss
 		}
 	}
@@ -214,13 +214,13 @@ func (r *TheRun) runMongoCMD(server, cmd string) []byte {
 		log.Panicln("Failed to run {", cmd, "} from server [", server, "] with error [", err, "]\n", output)
 	}
 
-	lines := str.Split(string(output), "\n")
+	lines := strings.Split(string(output), "\n")
 	lines = cleanup(lines) // take out non-JSON format
 
 	if lines[3] == "undefined" {
 		return nil
 	}
-	return []byte(str.Join(lines[3:], "\n"))
+	return []byte(strings.Join(lines[3:], "\n"))
 }
 
 func (r *TheRun) findMongoD_Info(run_id int) parser.ServerInfo {
@@ -248,7 +248,7 @@ func (r *TheRun) findMongoD_Info(run_id int) parser.ServerInfo {
 			log.Panicln("Failed to find serverBuildInfo for server [", server, "] with error [", err, "]")
 		}
 
-		lines := str.Split(string(output), "\n")
+		lines := strings.Split(string(output), "\n")
 	*/
 
 	output_ := r.runMongoCMD(server, "db.serverBuildInfo()")
@@ -269,7 +269,7 @@ func (r *TheRun) findMongoD_Info(run_id int) parser.ServerInfo {
 			log.Panicln("Failed to find serverBuildInfo for server [", server, "] with error [", err, "]")
 		}
 
-		lines = str.Split(string(output), "\n")
+		lines = strings.Split(string(output), "\n")
 
 	*/
 
@@ -291,7 +291,7 @@ func (r *TheRun) findMongoD_Info(run_id int) parser.ServerInfo {
 			log.Panicln("Failed to find storageEngine for server [", server, "] with error [", err, "]")
 		}
 
-		lines = str.Split(string(output), "\n")
+		lines = strings.Split(string(output), "\n")
 
 		lines = cleanup(lines)
 	*/
@@ -352,7 +352,7 @@ func exists(path string) (bool, error) {
 }
 
 func joinstr(s1 string, s2 string, sep string) string {
-	r := str.Join([]string{s1, s2}, sep)
+	r := strings.Join([]string{s1, s2}, sep)
 	fmt.Println(r)
 
 	return r
@@ -480,11 +480,11 @@ func (r *TheRun) RunClientTasks(i int, run_dir string) {
 	r.Runs[i].Stats.TestRunTime = r.Runs[i].Stats.End_Time.Date - r.Runs[i].Stats.Start_Time.Date
 
 	// FIXME check error here
-	utime_before, _ := strconv.Atoi(str.Fields(procstat_before)[13])
-	stime_before, _ := strconv.Atoi(str.Fields(procstat_before)[14])
+	utime_before, _ := strconv.Atoi(strings.Fields(procstat_before)[13])
+	stime_before, _ := strconv.Atoi(strings.Fields(procstat_before)[14])
 
-	utime_after, _ := strconv.Atoi(str.Fields(procstat_after)[13])
-	stime_after, _ := strconv.Atoi(str.Fields(procstat_after)[14])
+	utime_after, _ := strconv.Atoi(strings.Fields(procstat_after)[13])
+	stime_after, _ := strconv.Atoi(strings.Fields(procstat_after)[14])
 
 	var findTotalOps = func(before, after parser.MongoServerStatus) int64 {
 		var t int64 = 0
@@ -691,7 +691,7 @@ func (r *TheRun) Run(run_dir string) {
 	r.run_dir = run_dir
 
 	for i := 0; i < len(r.Runs); i++ {
-		if str.ToLower(r.Runs[i].Run_id) == "staging" {
+		if strings.ToLower(r.Runs[i].Run_id) == "staging" {
 			// r.stagingDBs()
 		} else {
 			// make the folder here
@@ -765,7 +765,7 @@ func getCsvSummary(f string) (string, string) {
 		li, err = bio.Read()
 	}
 
-	return str.Join(line, ","), str.Join(lastlastline, ",")
+	return strings.Join(line, ","), strings.Join(lastlastline, ",")
 }
 
 func summarizeCSV(file string, h string) string {
@@ -816,7 +816,7 @@ func init() {
 	flag.StringVar(&reportJSON, "o", "", "JSON file for test results")
 
 	if report_url_argv != "" {
-		report_url = str.Split(report_url_argv, ",")
+		report_url = strings.Split(report_url_argv, ",")
 	}
 }
 
