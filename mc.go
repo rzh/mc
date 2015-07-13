@@ -613,11 +613,13 @@ func (r *TheRun) monitorServer(server string, run_dir string) {
 		Cmd:      "iostat -x 2"})
 
 	// heap monitor
-	r.tasks = append(r.tasks, Task{
-		Ssh_url:  server,
-		Pem_file: r.PemFile,
-		Logfile:  joinstr(run_dir, "/heap.log--"+server, ""),
-		Cmd:      "bash -c \"\\\"while true; do echo ++++ `date` ++++; cat /proc/" + pid + "/maps | grep heap; sleep 2; done\\\"\""})
+	/*
+		r.tasks = append(r.tasks, Task{
+			Ssh_url:  server,
+			Pem_file: r.PemFile,
+			Logfile:  joinstr(run_dir, "/heap.log--"+server, ""),
+			Cmd:      "bash -c \"\\\"while true; do echo ++++ `date` ++++; cat /proc/" + pid + "/maps | grep heap; sleep 2; done\\\"\""})
+	*/
 
 	// mongostatus monitor
 	r.tasks = append(r.tasks, Task{
